@@ -5,8 +5,7 @@
 
 .env
 
-mongo/
-postgres/
+/mongo
 node_modules/
 dist/
 build/
