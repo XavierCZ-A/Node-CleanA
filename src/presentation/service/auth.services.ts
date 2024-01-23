@@ -1,6 +1,7 @@
-import { bcryptAdapter, createAccessToken, envs } from "../../config";
+import { bcryptAdapter, createAccessToken } from "../../config";
 import { UserModel } from "../../data";
 import { LoginUserDto, RegisterUserDto, entity, errors } from "../../domain";
+import { validateToken } from "../../config/validateJWT";
 import { sendMail } from "./email.services";
 
 
@@ -49,10 +50,9 @@ export const loginUser = async (loginDto: LoginUserDto) => {
 
         if (!isMatch) throw errors.badRequest("password incorrect");
 
-        const token = await createAccessToken({ id: user.id, email: user.email });
+        const token = await createAccessToken({ id: user.id });
 
         if (!token) throw errors.internalServer("Token creation token");
-
 
         const { password, ...rest } = entity(user)
 
@@ -96,6 +96,24 @@ export const sendEmailValidationLink = async (email: string) => {
     catch (error) {
         throw error
     }
+}
+
+export const validateEmail = async (token:string) => {
+
+    const payload =  await validateToken(token);
+    if(!payload) throw errors.badRequest("Token invalid");
+
+    const {email} =  payload as {email:string};
+
+    if(!email) throw errors.internalServer("Error validating email");
+
+    const user = await UserModel.findOne({email});
+
+    if(!user) throw errors.badRequest("User not found");
+
+    user.emailValidated = true;
+    await user.save();
+    
 }
 
 

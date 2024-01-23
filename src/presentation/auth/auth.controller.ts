@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { loginUser, registerUser } from "../service/auth.services";
+import { loginUser, registerUser, validateEmail } from "../service/auth.services";
 import { loginUserDto, registerUserDto } from "../../domain";
 
 
@@ -54,5 +54,8 @@ export const loginUsers = async (req: Request, res: Response) => {
 // }
 
 export const verifyEmail = (req: Request, res: Response) => {
+  const { token } = req.params;
+  validateEmail(token);
+  if (!token) return res.status(400).json({ message: "Email not verified" });
   res.json({ message: "Email verificated" });
 }
